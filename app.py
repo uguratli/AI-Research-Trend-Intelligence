@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.preprocessing import MinMaxScaler
+import json
 
 topics_df = pd.read_csv("topics_trend_analysis.csv", index_col=0)
 trend_share = pd.read_csv("trend_share.csv", index_col=0)
@@ -12,6 +13,8 @@ mn = MinMaxScaler()
 topics_df[["scaled_acc", "scaled_growth_size"]] = mn.fit_transform(topics_df[["acceleration", "growth_size"]])
 topics_df["scaled_acc"].fillna(0, inplace=True)
 topics_df["scaled_growth_size"].fillna(0, inplace=True)
+with open('topic_words.json', 'r') as file:
+    topic_words = json.load(file)
 
 
 st.set_page_config(
@@ -174,3 +177,55 @@ if selected_labels:
 
 else:
     st.info("Please select at least one topic.")
+
+
+# -----------------------------
+# TOPIC SELECTION
+# -----------------------------
+
+st.subheader("Select Topics")
+
+selected_labels = st.multiselect(
+    "Choose one or more topics to visualize",
+    topics_df["label"].sort_values(),
+    placeholder="Select topics..."
+)
+
+# Eğer hiçbir topic seçilmediyse
+if not selected_labels:
+    st.info("Please select at least one topic to display the trend.")
+    st.stop()
+
+# -----------------------------
+# Topic ID'leri bul
+# -----------------------------
+
+selected_topics = topics_df[
+    topics_df["label"].isin(selected_labels)
+]
+
+selected_topic_ids = topics_df[topics_df["label"].isin(selected_labels)].index.values
+
+
+
+st.subheader("Topic Keywords")
+
+for label, topic_id in zip(selected_labels, selected_topic_ids):
+
+    topic_words_df = pd.DataFrame({'word': topic_words[str(topic_id)][0], 'score': topic_words[str(topic_id)][1]}, columns=["word", "score"])
+
+
+    fig_keywords = px.bar(
+        topic_words_df,
+        x="score",
+        y="word",
+        orientation="h",
+        title=f"Top Keywords — {label}"
+    )
+
+    fig_keywords.update_layout(
+        template="plotly_white",
+        yaxis=dict(autorange="reversed")
+    )
+
+    st.plotly_chart(fig_keywords, use_container_width=True)
