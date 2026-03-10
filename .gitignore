@@ -1,1 +1,3 @@
 arxiv_abstracts_final.csv
+documents.parquet
+embeddings.npy
