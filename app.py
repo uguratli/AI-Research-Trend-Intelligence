@@ -8,6 +8,7 @@ import json
 topics_df = pd.read_csv("topics_trend_analysis.csv", index_col=0)
 trend_share = pd.read_csv("trend_share.csv", index_col=0)
 impact_df = pd.read_csv("top10_impact_topics.csv", index_col=0)
+representative_docs_df = pd.read_csv("representative_docs.csv", index_col=0)
 
 mn = MinMaxScaler()
 topics_df[["scaled_acc", "scaled_growth_size"]] = mn.fit_transform(topics_df[["acceleration", "growth_size"]])
@@ -175,54 +176,30 @@ if selected_labels:
     # burada topic'e göre filtreleyip time series fig üret
     st.plotly_chart(fig_topic_timeseries, use_container_width=True)
 
+
+    for label, topic_id in zip(selected_labels, selected_topic_ids):
+
+        topic_words_df = pd.DataFrame({'word': topic_words[str(topic_id)][0], 'score': topic_words[str(topic_id)][1]}, columns=["word", "score"])
+
+
+        doc_count = topics_df.loc[topic_id, "Count"]
+        st.markdown(f"### {label} (Documents: {doc_count})")
+        fig_keywords = px.bar(
+            topic_words_df,
+            x="score",
+            y="word",
+            orientation="h",
+            title=f"Top Keywords — {label}"
+        )
+
+        fig_keywords.update_layout(
+            template="plotly_white",
+            yaxis=dict(autorange="reversed")
+        )
+
+        st.plotly_chart(fig_keywords, use_container_width=True)
+
+
+
 else:
     st.info("Please select at least one topic.")
-
-
-# -----------------------------
-# TOPIC SELECTION
-# -----------------------------
-
-st.subheader("Select Topics")
-
-selected_labels = st.multiselect(
-    "Choose one or more topics to visualize",
-    topics_df["label"].sort_values(),
-    placeholder="Select topics..."
-)
-
-# Eğer hiçbir topic seçilmediyse
-if not selected_labels:
-    st.info("Please select at least one topic to display the trend.")
-    st.stop()
-
-# -----------------------------
-# Topic ID'leri bul
-# -----------------------------
-
-selected_topics = topics_df[
-    topics_df["label"].isin(selected_labels)
-]
-
-selected_topic_ids = topics_df[topics_df["label"].isin(selected_labels)].index.values
-st.subheader("Topic Keywords")
-
-for label, topic_id in zip(selected_labels, selected_topic_ids):
-
-    topic_words_df = pd.DataFrame({'word': topic_words[str(topic_id)][0], 'score': topic_words[str(topic_id)][1]}, columns=["word", "score"])
-
-
-    fig_keywords = px.bar(
-        topic_words_df,
-        x="score",
-        y="word",
-        orientation="h",
-        title=f"Top Keywords — {label}"
-    )
-
-    fig_keywords.update_layout(
-        template="plotly_white",
-        yaxis=dict(autorange="reversed")
-    )
-
-    st.plotly_chart(fig_keywords, use_container_width=True)
