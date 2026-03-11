@@ -205,9 +205,6 @@ selected_topics = topics_df[
 ]
 
 selected_topic_ids = topics_df[topics_df["label"].isin(selected_labels)].index.values
-
-
-
 st.subheader("Topic Keywords")
 
 for label, topic_id in zip(selected_labels, selected_topic_ids):
