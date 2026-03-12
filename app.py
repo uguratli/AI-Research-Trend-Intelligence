@@ -5,16 +5,22 @@ import plotly.graph_objects as go
 from sklearn.preprocessing import MinMaxScaler
 import json
 
-topics_df = pd.read_csv("topics_trend_analysis.csv", index_col=0)
-trend_share = pd.read_csv("trend_share.csv", index_col=0)
-impact_df = pd.read_csv("top10_impact_topics.csv", index_col=0)
-representative_docs_df = pd.read_csv("representative_docs.csv")
+@st.cache_data
+def load_data():
+    topics_df = pd.read_csv("topics_trend_analysis.csv", index_col=0)
+    trend_share = pd.read_csv("trend_share.csv", index_col=0)
+    impact_df = pd.read_csv("top10_impact_topics.csv", index_col=0)
+    representative_docs_df = pd.read_csv("representative_docs.csv")
+
+    with open('topic_words.json', 'r') as file:
+        topic_words = json.load(file)
+
+    return topics_df, trend_share, impact_df, representative_docs_df, topic_words
+
+topics_df, trend_share, impact_df, representative_docs_df, topic_words = load_data()
 
 
-mn = MinMaxScaler()
-topics_df[["scaled_acc", "scaled_growth_size"]] = mn.fit_transform(topics_df[["acceleration", "growth_size"]])
-topics_df["scaled_acc"].fillna(0, inplace=True)
-topics_df["scaled_growth_size"].fillna(0, inplace=True)
+
 with open('topic_words.json', 'r') as file:
     topic_words = json.load(file)
 
@@ -29,7 +35,8 @@ st.set_page_config(
 # -----------------------------
 st.markdown(
     """
-    <h1 style='text-align: center;'>Emerging AI Research Trends (arXiv 2018–2024)</h1>
+    <h1 style='text-align: center;'>AI Research Trend Intelligence Dashboard</h1>
+    <h1 style='text-align: center;'>Tracking Emerging Topics in arXiv (2018–2024)</h1>
     <p style='text-align: center; color: gray;'>
     Multi-window growth analysis of AI research topics using NLP and regression-based trend metrics.
     </p>
@@ -47,7 +54,6 @@ total_docs = topics_df['Count'].sum()
 
 total_topics = topics_df['label'].nunique()
 
-total_topics = len(topics_df)
 growing_topics = (topics_df["slope_12m"] > 0).sum()
 growing_pct = 100 * growing_topics / total_topics
 
@@ -75,13 +81,19 @@ fig_quadrant = px.scatter(
     y="slope_12m",
     size="scaled_growth_size",
     color="category",
-    hover_name="label",
+    hover_data={
+        "scaled_growth_size": False,
+        "scaled_acc": False,
+        "Count": True,
+        "slope_12m": ':.4f',
+        "acceleration": ':.4f'
+    },
     template="plotly_white"
 )
 
 fig_quadrant.add_vline(x=0, line_dash="dash")
 fig_quadrant.add_hline(y=0, line_dash="dash")
-
+fig_quadrant.update_traces(marker=dict(opacity=0.8))
 
 st.plotly_chart(fig_quadrant, use_container_width=True)
 
@@ -120,7 +132,7 @@ st.markdown("---")
 # -----------------------------
 # VOLUME VS GROWTH QUADRANT
 # -----------------------------
-st.subheader("Trend Intelligence Map")
+st.subheader("Topic Volume vs Growth")
 
 fig_quadrant = px.scatter(
     topics_df,
@@ -147,7 +159,7 @@ st.markdown("---")
 # -----------------------------
 # DRILLDOWN
 # -----------------------------
-st.subheader("Topic Drilldown")
+st.subheader("Deep Dive")
 
 selected_labels = st.multiselect(
     "Select Topics",
@@ -161,7 +173,7 @@ if selected_labels:
         fig_topic_timeseries.add_trace(
             go.Scatter(
                 x=trend_share.index,
-                y=trend_share[str(topic_id)]/ trend_share[str(topic_id)].max(),
+                y=trend_share[str(topic_id)]/ trend_share[str(topic_id)].max() + 0.0000001,
                 mode="lines",
                 name=label
             )
@@ -174,7 +186,6 @@ if selected_labels:
         yaxis_title="Topic Share",
         hovermode="x unified"
     )
-    # burada topic'e göre filtreleyip time series fig üret
     st.plotly_chart(fig_topic_timeseries, use_container_width=True)
 
 
@@ -184,7 +195,7 @@ if selected_labels:
 
 
         doc_count = topics_df.loc[topic_id, "Count"]
-        st.markdown(f"### {label} (Documents: {doc_count})")
+        st.markdown(f"## {label} (Documents: {doc_count})")
         fig_keywords = px.bar(
             topic_words_df,
             x="score",
@@ -200,7 +211,7 @@ if selected_labels:
 
         st.plotly_chart(fig_keywords, use_container_width=True)
 
-        st.markdown("#### Representative Papers")
+        st.markdown("### Representative Papers")
         topic_papers = representative_docs_df[representative_docs_df["topic_id"] == topic_id].sort_values("rank").head(5)
         for _, row in topic_papers.iterrows():
             st.markdown(f"**{row['title']}**")
