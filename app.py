@@ -8,7 +8,8 @@ import json
 topics_df = pd.read_csv("topics_trend_analysis.csv", index_col=0)
 trend_share = pd.read_csv("trend_share.csv", index_col=0)
 impact_df = pd.read_csv("top10_impact_topics.csv", index_col=0)
-representative_docs_df = pd.read_csv("representative_docs.csv", index_col=0)
+representative_docs_df = pd.read_csv("representative_docs.csv")
+
 
 mn = MinMaxScaler()
 topics_df[["scaled_acc", "scaled_growth_size"]] = mn.fit_transform(topics_df[["acceleration", "growth_size"]])
@@ -198,6 +199,15 @@ if selected_labels:
         )
 
         st.plotly_chart(fig_keywords, use_container_width=True)
+
+        st.markdown("#### Representative Papers")
+        topic_papers = representative_docs_df[representative_docs_df["topic_id"] == topic_id].sort_values("rank").head(5)
+        for _, row in topic_papers.iterrows():
+            st.markdown(f"**{row['title']}**")
+            st.markdown(f"*Published: {row['published']}*")
+            st.markdown(f"{row['abstract'][:300]}...")
+            st.markdown(f"[Read More]({row['paper_id']})")
+            st.divider()
 
 
 
