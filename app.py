@@ -7,23 +7,17 @@ import json
 
 @st.cache_data
 def load_data():
-    topics_df = pd.read_csv("topics_trend_analysis.csv", index_col=0)
-    trend_share = pd.read_csv("trend_share.csv", index_col=0)
-    impact_df = pd.read_csv("top10_impact_topics.csv", index_col=0)
-    representative_docs_df = pd.read_csv("representative_docs.csv")
+    topics_df = pd.read_csv("data/processed/topics_trend_analysis.csv", index_col=0)
+    trend_share = pd.read_csv("data/processed/trend_share.csv", index_col=0)
+    impact_df = pd.read_csv("data/processed/top10_impact_topics.csv", index_col=0)
+    representative_docs_df = pd.read_csv("data/processed/representative_docs.csv")
 
-    with open('topic_words.json', 'r') as file:
+    with open('data/processed/topic_words.json', 'r') as file:
         topic_words = json.load(file)
 
     return topics_df, trend_share, impact_df, representative_docs_df, topic_words
 
 topics_df, trend_share, impact_df, representative_docs_df, topic_words = load_data()
-
-
-
-with open('topic_words.json', 'r') as file:
-    topic_words = json.load(file)
-
 
 st.set_page_config(
     page_title="AI Research Trend Intelligence",
@@ -35,8 +29,8 @@ st.set_page_config(
 # -----------------------------
 st.markdown(
     """
-    <h1 style='text-align: center;'>AI Research Trend Intelligence Dashboard</h1>
-    <h1 style='text-align: center;'>Tracking Emerging Topics in arXiv (2018–2024)</h1>
+    <h1 style='text-align: center;'>AI Research Trend Intelligence</h1>
+    <h1 style='text-align: center;'>Emerging Topics in arXiv (2018–2024)</h1>
     <p style='text-align: center; color: gray;'>
     Multi-window growth analysis of AI research topics using NLP and regression-based trend metrics.
     </p>
@@ -91,7 +85,18 @@ fig_growth_acc = px.scatter(
 
 fig_growth_acc.add_vline(x=0, line_dash="dash")
 fig_growth_acc.add_hline(y=0, line_dash="dash")
+fig_growth_acc.add_vline(
+    x=topics_df["acceleration"].mean(),
+    line_dash="dot",
+    line_color="gray"
+)
 
+fig_growth_acc.add_hline(
+    y=topics_df["slope_12m"].mean(),
+    line_dash="dot",
+    line_color="gray"
+)
+fig_growth_acc.update_traces(marker=dict(opacity=0.8))
 fig_growth_acc.update_layout(
     title="Trend Momentum Map",
     xaxis_title="Acceleration",
@@ -126,7 +131,19 @@ fig_growth_volume.update_layout(
 )
 fig_growth_volume.add_vline(x=0, line_dash="dash")
 fig_growth_volume.add_hline(y=0, line_dash="dash")
+fig_growth_volume.add_vline(
+    x=topics_df["Count"].mean(),
+    line_dash="dot",
+    line_color="gray"
+)
 
+fig_growth_volume.add_hline(
+    y=topics_df["slope_12m"].mean(),
+    line_dash="dot",
+    line_color="gray"
+)
+
+fig_growth_volume.update_traces(marker=dict(opacity=0.8))
 st.subheader("Trend Intelligence Maps")
 
 col1, col2 = st.columns(2)
@@ -152,6 +169,9 @@ with col2:
         Topics in the **upper-left area** may represent smaller but emerging research directions.
         """
     )
+st.caption(
+"Dashed lines indicate the average values across topics, dividing the plot into quadrants to highlight emerging, mature, and declining trends."
+)
 st.markdown("---")
 
 # -----------------------------
@@ -231,7 +251,7 @@ st.markdown("---")
 # -----------------------------
 # DRILLDOWN
 # -----------------------------
-st.subheader("Deep Dive")
+st.subheader("Topic Deep Dive")
 
 selected_labels = st.multiselect(
     "Select Topics",
@@ -273,7 +293,8 @@ if selected_labels:
             x="score",
             y="word",
             orientation="h",
-            title=f"Top Keywords — {label}"
+            title=f"Top Keywords — {label}",
+            labels={"score": "Relevance", "word": "Keyword"}
         )
 
         fig_keywords.update_layout(
