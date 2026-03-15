@@ -70,12 +70,96 @@ col4.metric("Accelerating Topics (%)", f"{accelerating_pct:.1f}%")
 
 st.markdown("---")
 
+
+# -----------------------------
+# GROWTH VS ACCELERATION QUADRANT
+# -----------------------------
+fig_growth_acc = px.scatter(
+    topics_df,
+    y="slope_12m",
+    x="acceleration",
+    size="scaled_acc",
+    color="category",
+    hover_name="label",
+    hover_data={
+        "Count": True,
+        "slope_12m": ':.4f',
+        "acceleration": ':.4f'
+    },
+    template="plotly_white"
+)
+
+fig_growth_acc.add_vline(x=0, line_dash="dash")
+fig_growth_acc.add_hline(y=0, line_dash="dash")
+
+fig_growth_acc.update_layout(
+    title="Trend Momentum Map",
+    xaxis_title="Acceleration",
+    yaxis_title="Growth (12-month slope)",
+    height=550
+)
+
+# -----------------------------
+# GROWTH VS VOLUME QUADRANT
+# -----------------------------
+
+fig_growth_volume = px.scatter(
+    topics_df,
+    y="slope_12m",
+    x="Count",
+    size="scaled_acc",
+    color="category",
+    hover_name="label",
+    hover_data={
+        "Count": True,
+        "slope_12m": ':.4f',
+        "acceleration": ':.4f'
+    },
+    template="plotly_white"
+)
+
+fig_growth_volume.update_layout(
+    title="Trend Strength vs Topic Size",
+    xaxis_title="Topic Volume (Number of Papers)",
+    yaxis_title="Growth (12-month slope)",
+    height=550
+)
+fig_growth_volume.add_vline(x=0, line_dash="dash")
+fig_growth_volume.add_hline(y=0, line_dash="dash")
+
+st.subheader("Trend Intelligence Maps")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.plotly_chart(fig_growth_acc, use_container_width=True)
+    st.caption(
+        """
+        **Growth vs Acceleration**
+
+        Topics in the **upper-right quadrant** represent rapidly growing research directions 
+        with increasing momentum. These are strong candidates for emerging trends in AI research.
+        """
+    )
+
+with col2:
+    st.plotly_chart(fig_growth_volume, use_container_width=True)
+    st.caption(
+        """
+        **Growth vs Volume**
+
+        Topics in the **upper-right area** combine large research activity with strong growth.  
+        Topics in the **upper-left area** may represent smaller but emerging research directions.
+        """
+    )
+st.markdown("---")
+
 # -----------------------------
 # MAIN QUADRANT
 # -----------------------------
-st.subheader("Trend Intelligence Map")
+st.subheader("Trend Consistency Map")
 
-fig_quadrant = px.scatter(
+fig_trend_consistency = px.scatter(
     topics_df,
     x="slope_24m",
     y="slope_12m",
@@ -91,18 +175,32 @@ fig_quadrant = px.scatter(
     template="plotly_white"
 )
 
-fig_quadrant.add_vline(x=0, line_dash="dash")
-fig_quadrant.add_hline(y=0, line_dash="dash")
-fig_quadrant.update_traces(marker=dict(opacity=0.8))
+fig_trend_consistency.add_vline(x=0, line_dash="dash")
+fig_trend_consistency.add_hline(y=0, line_dash="dash")
+fig_trend_consistency.update_traces(marker=dict(opacity=0.8))
+fig_trend_consistency.update_layout(
+    title="Short-Term vs Long-Term Trend",
+    xaxis_title="Long-Term Growth (24-month slope)",
+    yaxis_title="Short-Term Growth (12-month slope)",
+    height=550
+)
+st.plotly_chart(fig_trend_consistency, use_container_width=True)
 
-st.plotly_chart(fig_quadrant, use_container_width=True)
+st.caption(
+"""
+**Short-Term vs Long-Term Trend**
 
-st.markdown(
-    "<p style='color: gray;'>Topics in the upper-right quadrant show sustained and accelerating growth.</p>",
-    unsafe_allow_html=True
+This plot compares short-term and long-term growth signals for each research topic.
+
+- **Upper-right quadrant** → consistently growing topics over both time horizons  
+- **Upper-left quadrant** → recently accelerating topics (new emerging signals)  
+- **Lower-right quadrant** → mature topics that may be losing momentum  
+- **Lower-left quadrant** → declining research areas
+"""
 )
 
 st.markdown("---")
+
 # -----------------------------
 # TOP GROWING TABLE
 # -----------------------------
@@ -129,33 +227,7 @@ st.dataframe(
 )
 
 st.markdown("---")
-# -----------------------------
-# VOLUME VS GROWTH QUADRANT
-# -----------------------------
-st.subheader("Topic Volume vs Growth")
 
-fig_quadrant = px.scatter(
-    topics_df,
-    x="Count",
-    y="slope_12m",
-    size="scaled_acc",
-    color="category",
-    hover_name="label",
-    template="plotly_white"
-)
-
-fig_quadrant.add_vline(x=0, line_dash="dash")
-fig_quadrant.add_hline(y=0, line_dash="dash")
-
-
-st.plotly_chart(fig_quadrant, use_container_width=True)
-
-st.markdown(
-    "<p style='color: gray;'>Topics in the upper-right quadrant show sustained and accelerating growth.</p>",
-    unsafe_allow_html=True
-)
-
-st.markdown("---")
 # -----------------------------
 # DRILLDOWN
 # -----------------------------
