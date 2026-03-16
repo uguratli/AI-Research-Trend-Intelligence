@@ -143,8 +143,10 @@ This visualization shows the relationship between **topic popularity and growth 
 # Running the Dashboard
 
 Install dependencies:
+```bash
 pip install -r requirements.txt
 run streamlit run app.py
+```
 
 # Repository Structure
 
