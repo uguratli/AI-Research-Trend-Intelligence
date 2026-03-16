@@ -30,7 +30,7 @@ st.set_page_config(
 st.markdown(
     """
     <h1 style='text-align: center;'>AI Research Trend Intelligence</h1>
-    <h1 style='text-align: center;'>Emerging Topics in arXiv (2018–2024)</h1>
+    <h1 style='text-align: center;'>Emerging Topics in arXiv (2018–PRESENT)</h1>
     <p style='text-align: center; color: gray;'>
     Multi-window growth analysis of AI research topics using NLP and regression-based trend metrics.
     </p>
