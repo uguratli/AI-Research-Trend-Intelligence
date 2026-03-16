@@ -6,3 +6,4 @@ scikit-learn
 plotly
 streamlit
 altair<5
+standard-imghdr
