@@ -1,0 +1,8 @@
+pandas
+numpy
+bertopic
+sentence-transformers
+scikit-learn
+plotly
+streamlit
+gensim
