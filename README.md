@@ -160,3 +160,5 @@ run streamlit run app.py
 └── README.md
 
 # Live Dashboard
+Try the interactive dashboard here:
+https://ai-research-trend-intelligence.streamlit.app/
