@@ -123,7 +123,7 @@ An interactive **Streamlit dashboard** was built to explore:
 ## Growth vs Acceleration (Trend Momentum Map)
 
 <p align="center">
-  <img src="growth_vs_acc.png" width="800">
+  <img src="images/growth_vs_acc.png" width="800">
 </p>
 
 This map highlights **rapidly emerging research topics** based on their growth rate and acceleration.
